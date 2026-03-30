@@ -6,18 +6,6 @@ logger = logging.getLogger(__name__)
 
 jobs_bp = Blueprint('jobs', __name__, url_prefix='/jobs')
 
-@jobs_bp.app_errorhandler(404)
-def not_found(e):
-    return jsonify({'error': 'Route not found'}), 404
-
-@jobs_bp.app_errorhandler(405)
-def method_not_allowd(e):
-    return jsonify({'error': 'Method not allowd'}), 405
-
-@jobs_bp.app_errorhandler(500)
-def internal_error(e):
-    return jsonify({'error': 'Internal server error'}), 500
-
 # ─── POST /jobs ───────────────────────────────────────────
 @jobs_bp.route('', methods=['POST'])
 def add_job():
@@ -50,54 +38,123 @@ def add_job():
 def get_jobs():
     jobs = read_jobs()
 
-    # Filter by status (e.g. ?status=applied)
+    # Filters
     status = request.args.get('status')
-    if status:
-        jobs = [j for j in jobs if j['status'].lower() == status.lower()]
-
-    # Filter by company (e.g. ?company=google)
     company = request.args.get('company')
+
+    if status:
+        jobs = [
+            j for j in jobs
+            if j.get('status', '').lower() == status.lower()
+        ]
+
     if company:
-        jobs = [j for j in jobs if company.lower() in j['company'].lower()]
+        jobs = [
+            j for j in jobs
+            if company.lower() in j.get('company', '').lower()
+        ]
 
-    return jsonify({'count': len(jobs), 'jobs': jobs}), 200
+    # Pagination
+    page = request.args.get('page', type=int)
+    limit = request.args.get('limit', type=int)
 
+    total = len(jobs)
+
+    if page and page < 1:
+       page = 1
+    if limit and limit < 1:
+       limit = 5
+
+    if page and limit:
+        start = (page - 1) * limit
+        end = start + limit
+        jobs = jobs[start:end]
+
+    return jsonify({
+        'status': 'success',
+        'total': total,
+        'count': len(jobs),
+        'page': page,
+        'limit': limit,
+        'jobs': jobs
+    }), 200
+
+# ── GET /jobs/<id> ────────────────────────────────────────────
+@jobs_bp.route('/<job_id>', methods=['GET'])
+def get_job(job_id):
+    jobs = read_jobs()
+
+    job = next((j for j in jobs if j.get('id') == job_id), None)
+
+    if not job:
+        return jsonify({
+            'status': 'error',
+            'message': f'Job {job_id} not found'
+        }), 404
+
+    return jsonify({
+        'status': 'success',
+        'job': job
+    }), 200
 
 # ── PUT /jobs/<id> ────────────────────────────────────────────
 @jobs_bp.route('/<job_id>', methods=['PUT'])
 def update_job(job_id):
     data = request.get_json()
+
+    if not data:
+        return jsonify({
+            'status': 'error',
+            'message': 'Request body must be JSON'
+        }), 400
+
     jobs = read_jobs()
 
-    job = next((j for j in jobs if j['id'] == job_id), None)
+    job = next((j for j in jobs if j.get('id') == job_id), None)
     if not job:
-        return jsonify({'error': f'job {job_id} not found'}),  404
+        return jsonify({
+            'status': 'error',
+            'message': f'Job {job_id} not found'
+        }), 404
 
-    # Only allow updating these fields
     allowed = ['status', 'role', 'company', 'date_applied']
+
+    updated_fields = {}
     for field in allowed:
         if field in data:
             job[field] = data[field]
+            updated_fields[field] = data[field]
 
     write_jobs(jobs)
-    logger.info(f"Job updated | id={job_id} changes={data}")
 
-    return jsonify({'message': 'Job updated', 'job':job}), 200
+    logger.info(f"Job updated | id={job_id} changes={updated_fields}")
 
+    return jsonify({
+        'status': 'success',
+        'message': 'Job updated',
+        'job': job
+    }), 200
 
 #-- DELETE /jobs/<id> ---------------------------------------------
 @jobs_bp.route('/<job_id>', methods=['DELETE'])
 def delete_job(job_id):
     jobs = read_jobs()
-    original_count  = len(jobs)
-    
-    jobs = [j for j in jobs if j['id'] != job_id]
+    original_count = len(jobs)
+
+    jobs = [j for j in jobs if j.get('id') != job_id]
 
     if len(jobs) == original_count:
-        return jsonify({'error': f'Job {job_id} not found'}), 404
+        return jsonify({
+            'status': 'error',
+            'message': f'Job {job_id} not found'
+        }), 404
 
     write_jobs(jobs)
+
     logger.info(f"Job deleted | id={job_id}")
 
-    return jsonify({'message': f'Job {job_id} deleted'}), 200
+    return jsonify({
+        'status': 'success',
+        'message': f'Job {job_id} deleted'
+    }), 200
 

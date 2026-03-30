@@ -127,4 +127,5 @@ applied → interviewing → offer
 ## Author
 
 Ramkumar Palanichamy
-[GitHub](https://github.com/ramkumarodc) 
+[GitHub](https://github.com/ramkumarodc) | [LinkedIn](www.linkedin.com/in/ramkumar-palanichamy-21000622)
+```
