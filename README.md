@@ -1,60 +1,130 @@
 # Job Tracker API
 
-A RESTful API built with Flask to track and manage job applications.
+A RESTful API to track job applications — built with Python and Flask, deployed on AWS EC2.
 
-##i Purpose
-This project helps users manage their job search by allowing them to:
-- Add job applications
-- Update application status (applied, interview, offer, rejected)
-- Track companies and roles in one place
-Note: This project uses JSON file storage to keep the setup simple and focus on API design and deployment fundamentals.
+Built as a portfolio project to demonstrate backend engineering skills:
+clean code structure, REST design, error handling, logging, and cloud deployment.
 
+---
 
 ## Tech Stack
-- Python 3 
-- Flask
-- JSON file storage (no database)
-- AWS EC2 (deployment)
-- Gunicorn 
 
+| Layer      | Technology        |
+|------------|-------------------|
+| Language   | Python 3          |
+| Framework  | Flask             |
+| Storage    | JSON file         |
+| Server     | Gunicorn          |
+| Deployment | AWS EC2 (Ubuntu)  |
 
-##Step
-```bash
-git clone https://github.com/ramkumarodc/job-tracker-api.git
-cd job-tracker-api
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python run.py
+---
+
+## Project Structure
 ```
+job-tracker-api/
+├── app/
+│   ├── __init__.py      # App factory, root endpoint
+│   ├── routes.py        # All CRUD endpoints + logging
+│   └── storage.py       # JSON read/write helpers
+├── data/
+│   └── jobs.json        # Persistent storage
+├── run.py               # Entry point
+└── requirements.txt
+```
+
+---
 
 ## API Endpoints
 
-| Method | Endpoint |Description |
-|--------|----------|------------|
-| POST | `/jobs` | Add a new job application |
-| GET | `/jobs` | Get all job applications |
-| PUT | `/jobs/<id>` | Update a job's status |
-| DELETE | `/jobs/<id>` | Delete a job |
+| Method | Endpoint        | Description            |
+|--------|-----------------|------------------------|
+| GET    | /               | Health check           |
+| POST   | /jobs           | Add a job application  |
+| GET    | /jobs           | Get all jobs           |
+| GET    | /jobs?status=   | Filter by status       |
+| GET    | /jobs?company=  | Filter by company      |
+| PUT    | /jobs/\<id\>    | Update a job           |
+| DELETE | /jobs/\<id\>    | Delete a job           |
 
-## Example Requests
+---
 
-**Add a job:**
+## Sample Requests & Responses
+
+### Add a job
 ```bash
-curl -X post http://localhost:5000/jobs \
+curl -X POST http://localhost:5000/jobs \
   -H "Content-Type: application/json" \
-  -d '{"company": "Google", "role": "SWE", "status": "applied"}'
+  -d '{"company": "Google", "role": "Backend Engineer", "status": "applied"}'
 ```
 
-**Update status:**
+**Response:**
+```json
+{
+  "message": "Job added",
+  "job": {
+    "id": "a1b2c3d4",
+    "company": "Google",
+    "role": "Backend Engineer",
+    "status": "applied",
+    "date_applied": "2026-03-29"
+  }
+}
+```
+
+### Get all jobs
 ```bash
-curl -X PUT http://localhost:5000/jobs/ \
+curl http://localhost:5000/jobs
+```
+
+### Filter by status
+```bash
+curl "http://localhost:5000/jobs?status=applied"
+```
+
+### Update a job
+```bash
+curl -X PUT http://localhost:5000/jobs/a1b2c3d4 \
   -H "Content-Type: application/json" \
   -d '{"status": "interviewing"}'
 ```
 
+### Delete a job
+```bash
+curl -X DELETE http://localhost:5000/jobs/a1b2c3d4
+```
+
+---
+
+## Run Locally
+```bash
+# Clone the repo
+git clone https://github.com/YOUR_USERNAME/job-tracker-api.git
+cd job-tracker-api
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
+python run.py
+```
+
+API will be available at `http://localhost:5000`
+
+---
+
 ## Job Status Flow
-`applied` → `interviewing` → `offer` / `rejected`
+```
+applied → interviewing → offer
+                       → rejected
+```
+
+---
 
 ## Author
-Ramkumar Palanichamy — [https://github.com/ramkumarodc/job-tracker-api.git]
+
+Ramkumar Palanichamy
+[GitHub](https://github.com/ramkumarodc) 
