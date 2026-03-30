@@ -1,17 +1,26 @@
-#Job Tracker API
+# Job Tracker API
 
-A REst API to track job application, built with python and Flask. Deployed on AWS EC2.
+A RESTful API built with Flask to track and manage job applications.
+
+##i Purpose
+This project helps users manage their job search by allowing them to:
+- Add job applications
+- Update application status (applied, interview, offer, rejected)
+- Track companies and roles in one place
+Note: This project uses JSON file storage to keep the setup simple and focus on API design and deployment fundamentals.
 
 
 ## Tech Stack
-- Python 3 +  Flask
-- JSON file storage
-- Deployed on AWS EC2 with Gunicorn + Nginx
+- Python 3 
+- Flask
+- JSON file storage (no database)
+- AWS EC2 (deployment)
+- Gunicorn 
 
 
 ##Step
 ```bash
-git clone https://github.com/YOUR_USERNAME/job-tracker-api
+git clone https://github.com/ramkumarodc/job-tracker-api.git
 cd job-tracker-api
 python3 -m venv venv
 source venv/bin/activate
@@ -48,4 +57,4 @@ curl -X PUT http://localhost:5000/jobs/ \
 `applied` → `interviewing` → `offer` / `rejected`
 
 ## Author
-Ramkumar Palanichamy — [github.com/YOUR_USERNAME](https://github.com)
+Ramkumar Palanichamy — [https://github.com/ramkumarodc/job-tracker-api.git]
