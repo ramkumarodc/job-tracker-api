@@ -3,12 +3,9 @@ from .storage import read_jobs, write_jobs, generate_id, today
 
 jobs_bp = Blueprint('jobs', __name__, url_prefix='/jobs')
 
-
 @jobs_bp.app_errorhandler(404)
 def not_found(e):
     return jsonify({'error': 'Route not found'}), 404
-
-
 
 @jobs_bp.app_errorhandler(405)
 def method_not_allowd(e):
