@@ -1,5 +1,8 @@
 from flask import Blueprint, jsonify, request
 from .storage import read_jobs, write_jobs, generate_id, today
+import logging
+
+logger = logging.getLogger(__name__)
 
 jobs_bp = Blueprint('jobs', __name__, url_prefix='/jobs')
 
@@ -37,15 +40,28 @@ def add_job():
     jobs = read_jobs()
     jobs.append(job)
     write_jobs(jobs)
+    logger.info(f"Job created | id={job['id']} company={job['company']} role={job['role']}")
 
     return jsonify({'message': 'Job added', 'job': job}), 201
 
 
-# ── GET /jobs ────────────────────────────────────────────
+# ─── GET /jobs ────────────────────────────────────────────
 @jobs_bp.route('', methods=['GET'])
 def get_jobs():
     jobs = read_jobs()
+
+    # Filter by status (e.g. ?status=applied)
+    status = request.args.get('status')
+    if status:
+        jobs = [j for j in jobs if j['status'].lower() == status.lower()]
+
+    # Filter by company (e.g. ?company=google)
+    company = request.args.get('company')
+    if company:
+        jobs = [j for j in jobs if company.lower() in j['company'].lower()]
+
     return jsonify({'count': len(jobs), 'jobs': jobs}), 200
+
 
 # ── PUT /jobs/<id> ────────────────────────────────────────────
 @jobs_bp.route('/<job_id>', methods=['PUT'])
@@ -64,6 +80,8 @@ def update_job(job_id):
             job[field] = data[field]
 
     write_jobs(jobs)
+    logger.info(f"Job updated | id={job_id} changes={data}")
+
     return jsonify({'message': 'Job updated', 'job':job}), 200
 
 
@@ -79,5 +97,7 @@ def delete_job(job_id):
         return jsonify({'error': f'Job {job_id} not found'}), 404
 
     write_jobs(jobs)
+    logger.info(f"Job deleted | id={job_id}")
+
     return jsonify({'message': f'Job {job_id} deleted'}), 200
 
