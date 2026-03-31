@@ -6,8 +6,13 @@ from datetime import date
 DATA_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'jobs.json')
 
 def read_jobs():
-    with open(DATA_FILE, 'r') as f:
-        return json.load(f)
+    try:
+        with open(DATA_FILE, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+    except json.JSONDecodeError:
+        return []
 
 def write_jobs(jobs):
     with open(DATA_FILE, 'w') as f:
