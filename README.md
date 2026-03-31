@@ -1,9 +1,11 @@
 # Job Tracker API
 
-A RESTful API to track job applications — built with Python and Flask, deployed on AWS EC2.
+A RESTful API to track and manage job applications — built with Python and Flask, deployed on AWS EC2.
 
-Built as a portfolio project to demonstrate backend engineering skills:
-clean code structure, REST design, error handling, logging, and cloud deployment.
+This project demonstrates backend engineering fundamentals:
+REST API design, request validation, error handling, filtering, pagination, structured logging, and cloud deployment.
+
+> **Note:** Uses JSON file storage (no database) to keep setup simple and focus on API design and backend fundamentals.
 
 ---
 
@@ -20,11 +22,12 @@ clean code structure, REST design, error handling, logging, and cloud deployment
 ---
 
 ## Project Structure
+
 ```
 job-tracker-api/
 ├── app/
-│   ├── __init__.py      # App factory, root endpoint
-│   ├── routes.py        # All CRUD endpoints + logging
+│   ├── __init__.py      # App factory, root endpoint, error handlers
+│   ├── routes.py        # CRUD endpoints, filtering, pagination, logging
 │   └── storage.py       # JSON read/write helpers
 ├── data/
 │   └── jobs.json        # Persistent storage
@@ -36,19 +39,36 @@ job-tracker-api/
 
 ## API Endpoints
 
-| Method | Endpoint        | Description            |
-|--------|-----------------|------------------------|
-| GET    | /               | Health check           |
-| POST   | /jobs           | Add a job application  |
-| GET    | /jobs           | Get all jobs           |
-| GET    | /jobs?status=   | Filter by status       |
-| GET    | /jobs?company=  | Filter by company      |
-| PUT    | /jobs/\<id\>    | Update a job           |
-| DELETE | /jobs/\<id\>    | Delete a job           |
+| Method | Endpoint             | Description              |
+|--------|----------------------|--------------------------|
+| GET    | /                    | Health check             |
+| POST   | /jobs                | Create a new job         |
+| GET    | /jobs                | Get all jobs             |
+| GET    | /jobs/\<id\>         | Get a job by ID          |
+| GET    | /jobs?status=        | Filter by status         |
+| GET    | /jobs?company=       | Filter by company        |
+| GET    | /jobs?page=&limit=   | Paginate results         |
+| PUT    | /jobs/\<id\>         | Update a job             |
+| DELETE | /jobs/\<id\>         | Delete a job             |
 
 ---
 
 ## Sample Requests & Responses
+
+### Health check
+```bash
+curl http://localhost:5000/
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Job Tracker API is running",
+  "version": "1.0.0",
+  "timestamp": "2026-03-30T10:00:00Z"
+}
+```
 
 ### Add a job
 ```bash
@@ -66,7 +86,7 @@ curl -X POST http://localhost:5000/jobs \
     "company": "Google",
     "role": "Backend Engineer",
     "status": "applied",
-    "date_applied": "2026-03-29"
+    "date_applied": "2026-03-30"
   }
 }
 ```
@@ -76,9 +96,20 @@ curl -X POST http://localhost:5000/jobs \
 curl http://localhost:5000/jobs
 ```
 
-### Filter by status
+### Get job by ID
+```bash
+curl http://localhost:5000/jobs/a1b2c3d4
+```
+
+### Filter by status or company
 ```bash
 curl "http://localhost:5000/jobs?status=applied"
+curl "http://localhost:5000/jobs?company=google"
+```
+
+### Paginate results
+```bash
+curl "http://localhost:5000/jobs?page=1&limit=5"
 ```
 
 ### Update a job
@@ -95,13 +126,23 @@ curl -X DELETE http://localhost:5000/jobs/a1b2c3d4
 
 ---
 
+## Job Status Flow
+
+```
+applied → interviewing → offer
+                       → rejected
+```
+
+---
+
 ## Run Locally
+
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/job-tracker-api.git
+git clone https://github.com/ramkumarodc/job-tracker-api.git
 cd job-tracker-api
 
-# Create virtual environment
+# Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
@@ -116,16 +157,20 @@ API will be available at `http://localhost:5000`
 
 ---
 
-## Job Status Flow
+## Deployment
+
+Deployed on AWS EC2 (Ubuntu 24.04 LTS, t3.micro) using Gunicorn as the production WSGI server.
+
+```bash
+gunicorn --bind 0.0.0.0:5000 "run:app"
 ```
-applied → interviewing → offer
-                       → rejected
-```
+
+> The instance may not be running continuously to stay within AWS free tier limits.
+> Contact me to schedule a live demo.
 
 ---
 
 ## Author
 
-Ramkumar Palanichamy
-[GitHub](https://github.com/ramkumarodc) | [LinkedIn](www.linkedin.com/in/ramkumar-palanichamy-21000622)
-```
+**Ramkumar Palanichamy**
+[GitHub](https://github.com/ramkumarodc) | [LinkedIn](https://linkedin.com/in/ramkumar-palanichamy-21000622)
